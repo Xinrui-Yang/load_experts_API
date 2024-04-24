@@ -3,7 +3,7 @@ import time
 from collections import deque, defaultdict, OrderedDict
 import load_experts_ext
 
-# 1 small 
+# 0 初始测试数据
 # 假设一共有2层，每层2个expert，dim为2
 # device_modules = torch.randn(2,2).cuda()
 # offloaded_modules = torch.randn(4,2).cuda()
@@ -16,7 +16,7 @@ import load_experts_ext
 # experts_list = torch.zeros(2).cuda().to(torch.int64)
 # experts_prefer_order = torch.tensor([1,0]).cuda()
 
-# 1.5 small
+# 1 较小测试数据规模
 # 假设一共有2层，每层5个expert，dim为2
 # device_modules = torch.randn(5,2).cuda()
 # offloaded_modules = torch.randn(10,2).cuda()
@@ -32,42 +32,31 @@ import load_experts_ext
 # experts_list = torch.zeros(4).cuda().to(torch.int64)
 # experts_prefer_order = torch.tensor([2,3,4,0,1]).cuda()
 
-# 2. medium
+# 2. 中等测试数据规模
 # 假设一共有2层，每层8个expert，dim为2
-# device_modules = torch.randn(8,2).cuda()
-# offloaded_modules = torch.randn(16,2).cuda()
-# for i in range(8):
+# device_modules = torch.randn(50,2).cuda()
+# offloaded_modules = torch.randn(100,2).cuda()
+# for i in range(50):
 #     device_modules[i] = offloaded_modules[i]*1.0
 # offloaded_modules = offloaded_modules.cpu()
-# experts_info = torch.arange(8).cuda()
-# selected_experts = torch.arange(8).cuda()
+# experts_info = torch.arange(50).cuda()
+# selected_experts = torch.arange(50).cuda()
 # layer_id = 1
-# experts_list = torch.zeros(8).cuda().to(torch.int64)
-# experts_prefer_order = torch.arange(8).cuda()
+# experts_list = torch.zeros(50).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(50).cuda()
 
-device_modules = torch.randn(100,2).cuda()
-offloaded_modules = torch.randn(200,2).cuda()
-for i in range(100):
+# 3. 较大测试数据规模 
+# 假设一共有2层，每层128个expert，dim为2
+device_modules = torch.randn(128,2).cuda()
+offloaded_modules = torch.randn(256,2).cuda()
+for i in range(128):
     device_modules[i] = offloaded_modules[i]*1.0
 offloaded_modules = offloaded_modules.cpu()
-experts_info = torch.arange(100).cuda()
-selected_experts = torch.arange(100).cuda()
-layer_id = 1
-experts_list = torch.zeros(100).cuda().to(torch.int64)
-experts_prefer_order = torch.arange(100).cuda()
-
-# 3. large 
-# 假设一共有2层，每层128个expert，dim为2
-# device_modules = torch.randn(128,2).cuda()
-# offloaded_modules = torch.randn(256,2).cuda()
-# for i in range(128):
-#     device_modules[i] = offloaded_modules[i]*1.0
-# offloaded_modules = offloaded_modules.cpu()
-# experts_info = torch.arange(128).cuda()
-# selected_experts = torch.arange(128).cuda()
-# layer_id = 1 
-# experts_list = torch.zeros(128).cuda().to(torch.int64)
-# experts_prefer_order = torch.arange(128).cuda()
+experts_info = torch.arange(128).cuda()
+selected_experts = torch.arange(128).cuda()
+layer_id = 1 
+experts_list = torch.zeros(128).cuda().to(torch.int64)
+experts_prefer_order = torch.arange(128).cuda()
 
 
 print("in:")
@@ -91,66 +80,8 @@ print(experts_list)
 print()
 
 num_iterations = 10
-total_time_demo = 0
 total_time_cuda = 0
 
-# 1. demo #
-# def load_experts(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list):
-#     num_bytes = (device_modules.numel() * device_modules.element_size()) // device_modules.shape[0]
-#     expert_num = experts_list.shape[0]
-    
-#     offloaded_modules = offloaded_modules.cuda()
-#     experts_info_list = experts_info.tolist()
-#     selected_experts = selected_experts.tolist()
-#     experts_prefer_order_list = experts_prefer_order.tolist()
-#     experts_prefer_order_dict = OrderedDict()
-#     #创建orderdict，给preferOrder打顺序标签
-#     for item in experts_prefer_order_list:
-#         experts_prefer_order_dict[item] = item
-
-#     #把select的放到最后
-#     for i, exp_info in enumerate(experts_info_list):
-#         exp_idx_tmp = exp_info - layer_id * expert_num 
-#         if exp_idx_tmp in selected_experts:
-#             experts_prefer_order_dict.move_to_end(i,last=True)
-    
-#     #选择最不重要的expert，输出是在device_modules里面的位置
-#     def choose_expert_to_evict():
-#         for pos_id, _ in experts_prefer_order_dict.items():
-#             return pos_id
-    
-#     #遍历选择的expert，如果已经在device_modules则直接写进experts_list，不在就从offloaded_modules load，并更新experts_prefer_order，experts_info和experts_list
-#     for count, expert_id in enumerate(selected_experts):
-#         uid = layer_id * expert_num + expert_id #总id
-#         flag = False
-#         for  i, loaded_uid in enumerate(experts_info_list):
-#             if uid == loaded_uid:
-#                 flag = True
-#                 pos_id = i
-#                 break
-#         if not flag :
-#             pos_id = choose_expert_to_evict()
-#             device_modules[pos_id] = offloaded_modules[uid]
-#             experts_info[pos_id] = uid
-#             experts_info_list[pos_id]=uid
-#             experts_prefer_order_dict.move_to_end(pos_id,last=True)
-        
-#         experts_list[count]=pos_id * num_bytes
-    
-#     count=0
-#     for pos_id, _ in experts_prefer_order_dict.items():
-#         experts_prefer_order[count] = pos_id
-#         count+=1
-
-# for _ in range(num_iterations):
-#     start_time_demo = time.perf_counter()
-#     load_experts(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list)
-#     end_time_demo = time.perf_counter()
-#     total_time_demo += end_time_demo - start_time_demo
-
-# average_time_demo = total_time_demo / num_iterations
-
-# 2. cuda #
 for _ in range(num_iterations):
     start_time_cuda = time.perf_counter()
     load_experts_ext.load_experts_para(
@@ -180,6 +111,4 @@ print()
 print("experts_list:")
 print(experts_list)
 print()
-
 print("average_time_cuda:",average_time_cuda)
-# print("average_time_demo:",average_time_demo)
