@@ -32,7 +32,7 @@ from collections import deque, defaultdict, OrderedDict
 # experts_prefer_order = torch.tensor([2,3,4,0,1]).cuda()
 
 # 2. 中等测试数据规模
-# 假设一共有2层，每层8个expert，dim为2
+# 假设一共有2层，每层50个expert，dim为2
 # device_modules = torch.randn(50,2).cuda()
 # offloaded_modules = torch.randn(100,2).cuda()
 # for i in range(50):
@@ -108,21 +108,19 @@ def load_experts(device_modules,offloaded_modules,experts_info,selected_experts,
         count+=1
 
 num_iterations = 10
-total_time = 0
+total_time_demo = 0
 
 for _ in range(num_iterations):
     start_time = time.perf_counter()
     load_experts(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list)
     end_time = time.perf_counter()
-    total_time += end_time - start_time
+    total_time_demo += end_time - start_time
 
-average_time = total_time / num_iterations
-
-print("execution_time_cpu:")
-print(average_time)
+average_time_demo = total_time_demo / num_iterations
 
 print(device_modules)
 print(experts_info)
 print(experts_prefer_order)
 print(experts_list)
+print("average_time_demo:",average_time_demo)
 
