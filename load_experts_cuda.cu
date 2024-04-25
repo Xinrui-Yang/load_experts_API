@@ -5,7 +5,7 @@
 #include <thrust/sort.h>
 #include <thrust/unique.h>
 
-#define BLOCK_SIZE 256
+#define BLOCK_SIZE 128
 
 /* 1. 把需要load的experts存到unloaded数组中，并使用reduction和prefix sum计算需要load的数量。 */
 __global__ void load_experts_kernel(

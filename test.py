@@ -54,16 +54,28 @@ from collections import deque, defaultdict, OrderedDict
 # experts_prefer_order = torch.arange(64).cuda()
 
 # 4. 假设一共有2层，每层128个expert，dim为2
-device_modules = torch.randn(128,2).cuda()
-offloaded_modules = torch.randn(256,2).cuda()
-for i in range(128):
+# device_modules = torch.randn(128,2).cuda()
+# offloaded_modules = torch.randn(256,2).cuda()
+# for i in range(128):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(128).cuda()
+# selected_experts = torch.arange(128).cuda()
+# layer_id = 1 
+# experts_list = torch.zeros(128).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(128).cuda()
+
+# 5. 假设一共有2层，每层512个expert，dim为2
+device_modules = torch.randn(512,2).cuda()
+offloaded_modules = torch.randn(1024,2).cuda()
+for i in range(512):
     device_modules[i] = offloaded_modules[i]*1.0
 offloaded_modules = offloaded_modules.cpu()
-experts_info = torch.arange(128).cuda()
-selected_experts = torch.arange(128).cuda()
+experts_info = torch.arange(512).cuda()
+selected_experts = torch.arange(512).cuda()
 layer_id = 1 
-experts_list = torch.zeros(128).cuda().to(torch.int64)
-experts_prefer_order = torch.arange(128).cuda()
+experts_list = torch.zeros(512).cuda().to(torch.int64)
+experts_prefer_order = torch.arange(512).cuda()
 
 print(device_modules)
 print(offloaded_modules)
@@ -115,7 +127,7 @@ def load_experts(device_modules,offloaded_modules,experts_info,selected_experts,
         experts_prefer_order[count] = pos_id
         count+=1
 
-num_iterations = 10
+num_iterations = 100
 total_time_demo = 0
 
 for _ in range(num_iterations):
