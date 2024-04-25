@@ -54,18 +54,6 @@ __global__ void load_experts_kernel(
     }
 }
 
-__global__ void prefix_sum(int *src, int *dst, int n)
-{
-    if (threadIdx.x == 0 && blockIdx.x == 0)
-    {
-        dst[0] = 0;
-        for (int i = 1; i < n; i++)
-        {
-            dst[i] = dst[i - 1] + src[i - 1];
-        }
-    }
-}
-
 /* 2. 根据需要load的数量，从前到后选取experts_prefer_order中元素作为pos_id。最后再对experts_prefer_order进行排序。 */
 __global__ void load_experts_list_kernel(
     float *device_modules,
@@ -149,12 +137,13 @@ void load_experts_cuda(
     cudaMemcpy(d_offloaded_modules, offloaded_modules, 2 * offloaded_num * sizeof(offloaded_modules[0]), cudaMemcpyHostToDevice);
 
     thrust::device_ptr<long> d_selected_experts(selected_experts);
-    thrust::device_vector<long> d_vec_selected_experts(d_selected_experts, d_selected_experts + token_num*topk);
+    thrust::device_vector<long> d_vec_selected_experts(d_selected_experts, d_selected_experts + token_num * topk);
     thrust::sort(d_vec_selected_experts.begin(), d_vec_selected_experts.end());
     thrust::device_vector<long>::iterator new_end = thrust::unique(d_vec_selected_experts.begin(), d_vec_selected_experts.end());
     int single_sel_num = new_end - d_vec_selected_experts.begin();
     d_vec_selected_experts.resize(single_sel_num);
 
+    /* 1. 把需要load的experts存到unloaded数组中，并使用reduction计算每个block需要load的experts数量。 */
     load_experts_kernel<<<grid, block>>>(
         device_modules,
         experts_info,
@@ -169,23 +158,18 @@ void load_experts_cuda(
         single_sel_num,
         num_bytes);
 
+    /* 2. 使用parallel prefix sums计算所有需要load的experts数量。 */
     void *d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
     cub::DeviceScan::ExclusiveSum(
         d_temp_storage, temp_storage_bytes,
         block_num, unloaded_num, grid_size + 1);
-
-    // Allocate temporary storage
     cudaMalloc(&d_temp_storage, temp_storage_bytes);
-
-    // Run exclusive prefix sum
     cub::DeviceScan::ExclusiveSum(
         d_temp_storage, temp_storage_bytes,
         block_num, unloaded_num, grid_size + 1);
 
-
-    //prefix_sum<<<1, 1>>>(block_num, unloaded_num, grid_size + 1);
-
+    /* 3. 根据需要load的数量，从前到后选取experts_prefer_order中元素作为pos_id。最后再对experts_prefer_order进行排序。 */
     load_experts_list_kernel<<<grid, block>>>(
         device_modules,
         d_offloaded_modules,
@@ -207,38 +191,3 @@ void load_experts_cuda(
     cudaFree(block_num);
     cudaFree(tmp_experts_prefer_order);
 }
-
-// int main(){
-//     int device_num = 5;
-//     int offloaded_num = 10;
-//     int layer_id = 0;
-//     int token_num = 1;
-//     int topk = 4;
-    
-//     float *device_modules = nullptr;
-//     float *offloaded_modules = nullptr;
-//     long *experts_info = nullptr;
-//     long *selected_experts = nullptr;
-//     long *experts_prefer_order = nullptr;
-//     long *experts_list = nullptr;
-
-//     cudaMalloc((void **)&device_modules, 2 * device_num * sizeof(float));
-//     cudaMalloc((void **)&offloaded_modules, 2 * offloaded_num * sizeof(float));
-//     cudaMalloc((void **)&experts_info, 2 * device_num * sizeof(long));
-//     cudaMalloc((void **)&selected_experts, 2 * topk * sizeof(long));
-//     cudaMalloc((void **)&experts_prefer_order, 2 * device_num * sizeof(long));
-//     cudaMalloc((void **)&experts_list, 2 * topk * sizeof(long));
-
-//     load_experts_cuda(
-//         device_modules,
-//         offloaded_modules,
-//         experts_info,
-//         selected_experts,
-//         experts_prefer_order,
-//         layer_id,
-//         experts_list,
-//         offloaded_num,
-//         token_num,
-//         topk,
-//         device_num);
-// }

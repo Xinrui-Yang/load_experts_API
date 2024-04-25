@@ -64,27 +64,3 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
 {
     m.def("load_experts_para", &load_experts_para, "Load Experts (CUDA)");
 }
-
-/**
- * Test,但找不到库,用不了
- */
-// int main()
-// {
-    
-    // Device device(kCUDA);
-    // Tensor device_modules = randn({128, 2}, device);
-    // Tensor offloaded_modules = randn({256, 2}, device);
-    // for (int i = 0; i < 128; i++)
-    // {
-    //     device_modules[i] = offloaded_modules[i] * 1.0;
-    // }
-    // offloaded_modules = offloaded_module.to(kCPU);
-
-    // Tensor experts_info = arange(128, device);
-    // Tensor selected_experts = arange(128, device);
-    // layer_id = 1;
-    // Tensor experts_list = zeros({128}, device).to(kInt64);
-    // Tensor experts_prefer_order = arange(128, device);
-    // load_experts_para(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list);
-
-// }
