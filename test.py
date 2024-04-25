@@ -42,16 +42,16 @@ from collections import deque, defaultdict, OrderedDict
 # experts_prefer_order = torch.arange(8).cuda()
 
 # 3. 假设一共有2层，每层64个expert，dim为2
-device_modules = torch.randn(64,2).cuda()
-offloaded_modules = torch.randn(128,2).cuda()
-for i in range(64):
-    device_modules[i] = offloaded_modules[i]*1.0
-offloaded_modules = offloaded_modules.cpu()
-experts_info = torch.arange(64).cuda()
-selected_experts = torch.arange(64).cuda()
-layer_id = 1
-experts_list = torch.zeros(64).cuda().to(torch.int64)
-experts_prefer_order = torch.arange(64).cuda()
+# device_modules = torch.randn(64,2).cuda()
+# offloaded_modules = torch.randn(128,2).cuda()
+# for i in range(64):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(64).cuda()
+# selected_experts = torch.arange(64).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(64).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(64).cuda()
 
 # 4. 假设一共有2层，每层128个expert，dim为2
 device_modules = torch.randn(128,2).cuda()
