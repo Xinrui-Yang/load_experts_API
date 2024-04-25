@@ -169,7 +169,22 @@ void load_experts_cuda(
         single_sel_num,
         num_bytes);
 
-    prefix_sum<<<1, 1>>>(block_num, unloaded_num, grid_size + 1);
+    void *d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceScan::ExclusiveSum(
+        d_temp_storage, temp_storage_bytes,
+        block_num, unloaded_num, grid_size + 1);
+
+    // Allocate temporary storage
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+
+    // Run exclusive prefix sum
+    cub::DeviceScan::ExclusiveSum(
+        d_temp_storage, temp_storage_bytes,
+        block_num, unloaded_num, grid_size + 1);
+
+
+    //prefix_sum<<<1, 1>>>(block_num, unloaded_num, grid_size + 1);
 
     load_experts_list_kernel<<<grid, block>>>(
         device_modules,
@@ -192,3 +207,38 @@ void load_experts_cuda(
     cudaFree(block_num);
     cudaFree(tmp_experts_prefer_order);
 }
+
+// int main(){
+//     int device_num = 5;
+//     int offloaded_num = 10;
+//     int layer_id = 0;
+//     int token_num = 1;
+//     int topk = 4;
+    
+//     float *device_modules = nullptr;
+//     float *offloaded_modules = nullptr;
+//     long *experts_info = nullptr;
+//     long *selected_experts = nullptr;
+//     long *experts_prefer_order = nullptr;
+//     long *experts_list = nullptr;
+
+//     cudaMalloc((void **)&device_modules, 2 * device_num * sizeof(float));
+//     cudaMalloc((void **)&offloaded_modules, 2 * offloaded_num * sizeof(float));
+//     cudaMalloc((void **)&experts_info, 2 * device_num * sizeof(long));
+//     cudaMalloc((void **)&selected_experts, 2 * topk * sizeof(long));
+//     cudaMalloc((void **)&experts_prefer_order, 2 * device_num * sizeof(long));
+//     cudaMalloc((void **)&experts_list, 2 * topk * sizeof(long));
+
+//     load_experts_cuda(
+//         device_modules,
+//         offloaded_modules,
+//         experts_info,
+//         selected_experts,
+//         experts_prefer_order,
+//         layer_id,
+//         experts_list,
+//         offloaded_num,
+//         token_num,
+//         topk,
+//         device_num);
+// }
