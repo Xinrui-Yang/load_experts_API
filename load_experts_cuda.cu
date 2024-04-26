@@ -68,7 +68,8 @@ __global__ void load_experts_list_kernel(
     int single_sel_num,
     int device_num,
     int grid_size,
-    int num_bytes)
+    int num_bytes,
+    int dim)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     long pos_id = 0;
@@ -88,8 +89,11 @@ __global__ void load_experts_list_kernel(
                 j++;
             }
         }
-        device_modules[2 * pos_id] = offloaded_modules[2 * (unloaded[j] + layer_id * single_sel_num)];
-        device_modules[2 * pos_id + 1] = offloaded_modules[2 * (unloaded[j] + layer_id * single_sel_num) + 1];
+        for(int i = 0; i < dim; ++i){
+            device_modules[dim * pos_id + i] = offloaded_modules[dim * (unloaded[j] + layer_id * single_sel_num) + i];
+        }
+        // device_modules[dim * pos_id] = offloaded_modules[dim * (unloaded[j] + layer_id * single_sel_num)];
+        // device_modules[2 * pos_id + 1] = offloaded_modules[2 * (unloaded[j] + layer_id * single_sel_num) + 1];
         experts_info[pos_id] = unloaded[j] + layer_id * single_sel_num;
         experts_list[j] = pos_id * num_bytes;
     }
@@ -115,10 +119,11 @@ void load_experts_cuda(
     int offloaded_num,
     int token_num,
     int topk,
-    int device_num)
+    int device_num,
+    int dim)
 {
     int grid_size = (offloaded_num + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int num_bytes = 2 * sizeof(device_modules[0]);
+    int num_bytes = dim * sizeof(device_modules[0]);
     dim3 grid(grid_size);
     dim3 block(BLOCK_SIZE);
 
@@ -128,13 +133,13 @@ void load_experts_cuda(
     int *block_num = nullptr;
     long *tmp_experts_prefer_order = nullptr;
 
-    cudaMalloc((void **)&d_offloaded_modules, 2 * offloaded_num * sizeof(offloaded_modules[0]));
+    cudaMalloc((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
     cudaMalloc((void **)&d_unloaded, offloaded_num * sizeof(int));
     cudaMalloc((void **)&unloaded_num, (grid_size + 1) * sizeof(int));
     cudaMalloc((void **)&block_num, grid_size * sizeof(int));
     cudaMalloc((void **)&tmp_experts_prefer_order, device_num * sizeof(long));
 
-    cudaMemcpy(d_offloaded_modules, offloaded_modules, 2 * offloaded_num * sizeof(offloaded_modules[0]), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]), cudaMemcpyHostToDevice);
 
     thrust::device_ptr<long> d_selected_experts(selected_experts);
     thrust::device_vector<long> d_vec_selected_experts(d_selected_experts, d_selected_experts + token_num * topk);
@@ -183,7 +188,8 @@ void load_experts_cuda(
         single_sel_num,
         device_num,
         grid_size,
-        num_bytes);
+        num_bytes,
+        dim);
 
     cudaFree(d_offloaded_modules);
     cudaFree(d_unloaded);

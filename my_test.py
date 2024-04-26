@@ -4,8 +4,8 @@ from collections import deque, defaultdict, OrderedDict
 import load_experts_ext
 
 # 0. 假设一共有2层，每层2个expert，dim为2
-# device_modules = torch.randn(2,2).cuda()
-# offloaded_modules = torch.randn(4,2).cuda()
+# device_modules = torch.randn(2,3).cuda()
+# offloaded_modules = torch.randn(4,3).cuda()
 # device_modules[0] = offloaded_modules[0]*1.0
 # device_modules[1] = offloaded_modules[3]*1.0
 # offloaded_modules = offloaded_modules.cpu()

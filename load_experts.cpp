@@ -12,11 +12,11 @@ void load_experts_cuda(
     long *experts_prefer_order,
     int layer_id,
     long *experts_list,
-
     int offloaded_num,
     int token_num,
     int topk,
-    int device_num);
+    int device_num,
+    int dim);
 
 // C++ interface
 void load_experts_para(
@@ -30,6 +30,7 @@ void load_experts_para(
 {
     int offloaded_num = offloaded_modules.size(0);
     int device_num = device_modules.size(0);
+    int dim = offloaded_modules.size(1);
 
     int token_num = 0;
     int topk = 0;
@@ -56,7 +57,8 @@ void load_experts_para(
         offloaded_num,
         token_num,
         topk,
-        device_num);
+        device_num,
+        dim);
 }
 
 // Binding
