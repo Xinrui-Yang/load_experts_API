@@ -198,5 +198,5 @@ void load_experts_cuda(
     cudaFree(unloaded_num);
     cudaFree(block_num);
     cudaFree(tmp_experts_prefer_order);
-    cudaFree(d_offloaded_modules);
+
 }
