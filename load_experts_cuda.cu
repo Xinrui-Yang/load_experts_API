@@ -141,7 +141,6 @@ void load_experts_cuda(
     cudaMalloc((void **)&tmp_experts_prefer_order, device_num * sizeof(long));
 
     cudaMallocManaged((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
-    
     memcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
     
     thrust::device_ptr<long> d_selected_experts(selected_experts);
@@ -199,4 +198,5 @@ void load_experts_cuda(
     cudaFree(unloaded_num);
     cudaFree(block_num);
     cudaFree(tmp_experts_prefer_order);
+    cudaFree(d_offloaded_modules);
 }
