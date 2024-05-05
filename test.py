@@ -42,16 +42,16 @@ from collections import deque, defaultdict, OrderedDict
 # experts_prefer_order = torch.arange(8).cuda()
 
 # 3. 假设一共有2层，每层64个expert，dim为2
-device_modules = torch.randn(64,2).cuda()
-offloaded_modules = torch.randn(128,2).cuda()
-for i in range(64):
-    device_modules[i] = offloaded_modules[i]*1.0
-offloaded_modules = offloaded_modules.cpu()
-experts_info = torch.arange(64).cuda()
-selected_experts = torch.arange(64).cuda()
-layer_id = 1
-experts_list = torch.zeros(64).cuda().to(torch.int64)
-experts_prefer_order = torch.arange(64).cuda()
+# device_modules = torch.randn(64,2).cuda()
+# offloaded_modules = torch.randn(128,2).cuda()
+# for i in range(64):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(64).cuda()
+# selected_experts = torch.arange(64).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(64).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(64).cuda()
 
 # 4. 假设一共有2层，每层128个expert，dim为2
 # device_modules = torch.randn(128,2).cuda()
@@ -76,6 +76,78 @@ experts_prefer_order = torch.arange(64).cuda()
 # layer_id = 1 
 # experts_list = torch.zeros(512).cuda().to(torch.int64)
 # experts_prefer_order = torch.arange(512).cuda()
+
+# 1. 假设一共有2层，每层8个expert，dim为58
+# device_modules = torch.randn(8,58).cuda()
+# offloaded_modules = torch.randn(16,58).cuda()
+# for i in range(8):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(8).cuda()
+# selected_experts = torch.arange(8).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(8).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(8).cuda()
+
+# 2. 假设一共有2层，每层8个expert，dim为256
+# device_modules = torch.randn(8,256).cuda()
+# offloaded_modules = torch.randn(16,256).cuda()
+# for i in range(8):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(8).cuda()
+# selected_experts = torch.arange(8).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(8).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(8).cuda()
+
+# 3. 假设一共有2层，每层8个expert，dim为720
+# device_modules = torch.randn(8,720).cuda()
+# offloaded_modules = torch.randn(16,720).cuda()
+# for i in range(8):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(8).cuda()
+# selected_experts = torch.arange(8).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(8).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(8).cuda()
+
+# 1. 假设一共有2层，每层32个expert，dim为58
+# device_modules = torch.randn(32,58).cuda()
+# offloaded_modules = torch.randn(64,58).cuda()
+# for i in range(32):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(32).cuda()
+# selected_experts = torch.arange(32).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(32).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(32).cuda()
+
+# 2. 假设一共有2层，每层32个expert，dim为256
+# device_modules = torch.randn(32,256).cuda()
+# offloaded_modules = torch.randn(64,256).cuda()
+# for i in range(32):
+#     device_modules[i] = offloaded_modules[i]*1.0
+# offloaded_modules = offloaded_modules.cpu()
+# experts_info = torch.arange(32).cuda()
+# selected_experts = torch.arange(32).cuda()
+# layer_id = 1
+# experts_list = torch.zeros(32).cuda().to(torch.int64)
+# experts_prefer_order = torch.arange(32).cuda()
+
+# 3. 假设一共有2层，每层8个expert，dim为720
+device_modules = torch.randn(32,720).cuda()
+offloaded_modules = torch.randn(64,720).cuda()
+for i in range(32):
+    device_modules[i] = offloaded_modules[i]*1.0
+offloaded_modules = offloaded_modules.cpu()
+experts_info = torch.arange(32).cuda()
+selected_experts = torch.arange(32).cuda()
+layer_id = 1
+experts_list = torch.zeros(32).cuda().to(torch.int64)
+experts_prefer_order = torch.arange(32).cuda()
 
 print(device_modules)
 print(offloaded_modules)
