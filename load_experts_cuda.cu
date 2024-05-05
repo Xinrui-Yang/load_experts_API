@@ -35,7 +35,7 @@ __global__ void load_experts_kernel(
         int flag = 0;
         for (int k = 0; k < device_num; ++k)
         {
-            if (selected_experts[idx] + layer_id * single_sel_num == experts_info[k])
+            if (selected_experts[idx] + layer_id * device_num == experts_info[k])
             {
                 pos_id = k;
                 flag = 1;
@@ -91,9 +91,9 @@ __global__ void load_experts_list_kernel(
             }
         }
         for(int i = 0; i < dim; ++i){
-            device_modules[dim * pos_id + i] = offloaded_modules[dim * (unloaded[j] + layer_id * single_sel_num) + i];
+            device_modules[dim * pos_id + i] = offloaded_modules[dim * (unloaded[j] + layer_id * device_num) + i];
         }
-        experts_info[pos_id] = unloaded[j] + layer_id * single_sel_num;
+        experts_info[pos_id] = unloaded[j] + layer_id * device_num;
         experts_list[j] = pos_id * num_bytes;
     }
     if (less_important_experts < device_num)
@@ -132,16 +132,16 @@ void load_experts_cuda(
     int *block_num = nullptr;
     long *tmp_experts_prefer_order = nullptr;
 
-    // cudaMalloc((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
-    // cudaMemcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]), cudaMemcpyHostToDevice);
+    cudaMalloc((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
+    cudaMemcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]), cudaMemcpyHostToDevice);
 
     cudaMalloc((void **)&d_unloaded, offloaded_num * sizeof(int));
     cudaMalloc((void **)&unloaded_num, (grid_size + 1) * sizeof(int));
     cudaMalloc((void **)&block_num, grid_size * sizeof(int));
     cudaMalloc((void **)&tmp_experts_prefer_order, device_num * sizeof(long));
 
-    cudaMallocManaged((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
-    memcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
+    // cudaMallocManaged((void **)&d_offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
+    // memcpy(d_offloaded_modules, offloaded_modules, dim * offloaded_num * sizeof(offloaded_modules[0]));
     
     thrust::device_ptr<long> d_selected_experts(selected_experts);
     thrust::device_vector<long> d_vec_selected_experts(d_selected_experts, d_selected_experts + token_num * topk);

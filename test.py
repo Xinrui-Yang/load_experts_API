@@ -2,9 +2,9 @@ import torch
 import time
 from collections import deque, defaultdict, OrderedDict
 
-# 0. 假设一共有2层，每层2个expert，dim为2
-# device_modules = torch.randn(2,2).cuda()
-# offloaded_modules = torch.randn(4,2).cuda()
+# 0. 假设一共有2层，每层2个expert，dim为3
+# device_modules = torch.randn(2,3).cuda()
+# offloaded_modules = torch.randn(4,3).cuda()
 # device_modules[0] = offloaded_modules[0]*1.0
 # device_modules[1] = offloaded_modules[3]*1.0
 # offloaded_modules = offloaded_modules.cpu()
@@ -29,56 +29,8 @@ from collections import deque, defaultdict, OrderedDict
 # experts_list = torch.zeros(4).cuda().to(torch.int64)
 # experts_prefer_order = torch.tensor([2,3,4,0,1]).cuda()
 
-# 2. 假设一共有2层，每层8个expert，dim为2
-# device_modules = torch.randn(8,2).cuda()
-# offloaded_modules = torch.randn(16,2).cuda()
-# for i in range(8):
-#     device_modules[i] = offloaded_modules[i]*1.0
-# offloaded_modules = offloaded_modules.cpu()
-# experts_info = torch.arange(8).cuda()
-# selected_experts = torch.arange(8).cuda()
-# layer_id = 1
-# experts_list = torch.zeros(8).cuda().to(torch.int64)
-# experts_prefer_order = torch.arange(8).cuda()
-
-# 3. 假设一共有2层，每层64个expert，dim为2
-device_modules = torch.randn(64,2).cuda()
-offloaded_modules = torch.randn(128,2).cuda()
-for i in range(64):
-    device_modules[i] = offloaded_modules[i]*1.0
-offloaded_modules = offloaded_modules.cpu()
-experts_info = torch.arange(64).cuda()
-selected_experts = torch.arange(64).cuda()
-layer_id = 1
-experts_list = torch.zeros(64).cuda().to(torch.int64)
-experts_prefer_order = torch.arange(64).cuda()
-
-# 4. 假设一共有2层，每层128个expert，dim为2
-# device_modules = torch.randn(128,2).cuda()
-# offloaded_modules = torch.randn(256,2).cuda()
-# for i in range(128):
-#     device_modules[i] = offloaded_modules[i]*1.0
-# offloaded_modules = offloaded_modules.cpu()
-# experts_info = torch.arange(128).cuda()
-# selected_experts = torch.arange(128).cuda()
-# layer_id = 1 
-# experts_list = torch.zeros(128).cuda().to(torch.int64)
-# experts_prefer_order = torch.arange(128).cuda()
-
-# 5. 假设一共有2层，每层512个expert，dim为2
-# device_modules = torch.randn(512,2).cuda()
-# offloaded_modules = torch.randn(1024,2).cuda()
-# for i in range(512):
-#     device_modules[i] = offloaded_modules[i]*1.0
-# offloaded_modules = offloaded_modules.cpu()
-# experts_info = torch.arange(512).cuda()
-# selected_experts = torch.arange(512).cuda()
-# layer_id = 1 
-# experts_list = torch.zeros(512).cuda().to(torch.int64)
-# experts_prefer_order = torch.arange(512).cuda()
-
-print(device_modules)
-print(offloaded_modules)
+# print(device_modules)
+# print(offloaded_modules)
 
 def load_experts(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list):
     num_bytes = (device_modules.numel() * device_modules.element_size()) // device_modules.shape[0]
@@ -130,7 +82,23 @@ def load_experts(device_modules,offloaded_modules,experts_info,selected_experts,
 num_iterations = 100
 total_time_demo = 0
 
+test_device_num = 32
+dim = 720
+test_layer_id = 1
+test_offloaded_num = test_device_num * (test_layer_id + 1)
+
 for _ in range(num_iterations):
+    device_modules = torch.randn(test_device_num,dim).cuda()
+    offloaded_modules = torch.randn(test_offloaded_num,dim).cuda()
+    for i in range(test_device_num):
+        device_modules[i] = offloaded_modules[i]*1.0
+    offloaded_modules = offloaded_modules.cpu()
+    experts_info = torch.arange(test_device_num).cuda()
+    selected_experts = torch.arange(test_device_num).cuda()
+    layer_id = test_layer_id 
+    experts_list = torch.zeros(test_device_num).cuda().to(torch.int64)
+    experts_prefer_order = torch.arange(test_device_num).cuda()
+
     start_time = time.perf_counter()
     load_experts(device_modules,offloaded_modules,experts_info,selected_experts,experts_prefer_order,layer_id,experts_list)
     end_time = time.perf_counter()
